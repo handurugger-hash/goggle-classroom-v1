@@ -422,7 +422,7 @@
     #snake-root { display: flex; justify-content: center; align-items: center; width: 100%; }
     .sn-main-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; }
     .sn-game-container { display: flex; gap: 30px; align-items: flex-start; position: relative; }
-    .sn-help-icon, .sn-skin-icon, .sn-mode-icon {
+    .sn-help-icon, .sn-skin-icon, .sn-mode-icon, .sn-fs-icon {
       position: absolute; top: -40px; width: 30px; height: 30px;
       background: #00e5ff; color: #001a33; border-radius: 50%;
       display: flex; justify-content: center; align-items: center;
@@ -432,7 +432,8 @@
     .sn-help-icon { right: 0; }
     .sn-skin-icon { right: 40px; }
     .sn-mode-icon { right: 80px; }
-    .sn-help-icon:hover, .sn-skin-icon:hover, .sn-mode-icon:hover { transform: scale(1.1); background: white; }
+    .sn-fs-icon   { right: 120px; font-size: 14px; }
+    .sn-help-icon:hover, .sn-skin-icon:hover, .sn-mode-icon:hover, .sn-fs-icon:hover { transform: scale(1.1); background: white; }
     .sn-toggle-container {
       position: absolute; top: -45px; left: 0; display: flex; align-items: center; gap: 10px;
       font-size: 10px; letter-spacing: 1px; z-index: 30; font-family: 'Arial Black', sans-serif; color: white;
@@ -519,6 +520,11 @@
       font-family: 'Arial Black', sans-serif; font-size: 12px; cursor: pointer;
     }
     .sn-hidden-stats { opacity: 0; height: 0; margin: 0; overflow: hidden; pointer-events: none; }
+ 
+    /* ── FULLSCREEN STYLES ── */
+    #snake-root:-webkit-full-screen { background: #0d47a1; display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; }
+    #snake-root:-moz-full-screen    { background: #0d47a1; display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; }
+    #snake-root:fullscreen          { background: #0d47a1; display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; }
   </style>
 </head>
 <body>
@@ -622,6 +628,8 @@
             <div class="sn-mode-icon" onclick="snTogglePage('sn-mode-page')">🌐</div>
             <div class="sn-skin-icon" onclick="snTogglePage('sn-skin-page')">🐍</div>
             <div class="sn-help-icon" onclick="snTogglePage('sn-instructions-page')">?</div>
+            <!-- FULLSCREEN BUTTON -->
+            <div class="sn-fs-icon" id="sn-fs-btn" onclick="snToggleFullscreen()" title="Fullscreen">⛶</div>
             <div class="sn-upgrade-panel" id="sn-labPanel">
               <div class="sn-upgrade-title">🔬 CLASSIFIED LAB</div>
               <div id="sn-upgrade-list"></div>
@@ -755,7 +763,6 @@
   }
  
   // ── CTRL+ALT PANIC CLOSE ──
-  // When the algebra solver is open, Ctrl+Alt instantly closes it and returns to top of page.
   document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && e.altKey) {
       const algRoot = document.getElementById('algebra-root');
@@ -766,6 +773,31 @@
       }
     }
   });
+ 
+  // ── FULLSCREEN ──
+  function snToggleFullscreen() {
+    const el = document.getElementById('snake-root');
+    const btn = document.getElementById('sn-fs-btn');
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+    if (!isFs) {
+      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+      if (req) req.call(el);
+    } else {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+      if (exit) exit.call(document);
+    }
+  }
+ 
+  // Update button icon when fullscreen state changes (e.g. user presses Escape)
+  document.addEventListener('fullscreenchange',       snOnFsChange);
+  document.addEventListener('webkitfullscreenchange', snOnFsChange);
+  document.addEventListener('mozfullscreenchange',    snOnFsChange);
+  function snOnFsChange() {
+    const btn = document.getElementById('sn-fs-btn');
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+    btn.textContent = isFs ? '✕' : '⛶';
+    btn.title = isFs ? 'Exit Fullscreen' : 'Fullscreen';
+  }
  
   // ── ALGEBRA SOLVER ──
   function algSetExample(expr) {
